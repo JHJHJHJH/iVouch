@@ -64,7 +64,8 @@ const rejectStyle = {
 // };
 
 export default function DragDrop(props) {
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState([" "]);
+
   const {
     getRootProps,
     getInputProps,
@@ -84,9 +85,13 @@ export default function DragDrop(props) {
             preview: URL.createObjectURL(file)
           })
         )
+        
       );
-    }
+    } 
+    
   });
+  
+
 
   const style = useMemo(
     () => ({

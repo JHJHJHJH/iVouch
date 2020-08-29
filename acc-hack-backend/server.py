@@ -4,6 +4,8 @@ import boto3
 from botocore.config import Config
 import json
 import traceback
+import pandas as pd
+import numpy as np
 
 app = Flask(__name__)
 
@@ -45,12 +47,12 @@ def putInvoice( entry ):
                     obj["invoice_number"] = obj["invoice_number"] [0:len(obj["invoice_number"])-1 ] + str(( int(obj["invoice_number"][-1])+1))
                 else :
                     obj["invoice_number"] = obj["invoice_number"] + "0"
-
                 continue
+            
     return response["ResponseMetadata"]["HTTPStatusCode"]  
 ###############
 
-@app.route("/api/testnano", methods=['GET', 'POST'])
+@app.route("/api/uploadinvoice", methods=['GET', 'POST'])
 def ocr():
     try:
         data = request.files.getlist("file")
@@ -85,11 +87,13 @@ def ocr():
                     predictions.append( { "invoice_number" : "NoInvoiceNum" } )
                     putInvoice( predictions )
 
-        return ("Done")
+        res = {"message": "Invoice upload succeeded!"}
+        return json.dumps(res), 200
 
     except Exception as e:
+        err = {"message": str(e)}
         print(str(e))
-        return(str(e))
+        return json.dumps(err), 400
 
 
 ##########TEST post file
@@ -102,8 +106,34 @@ def postfile():
         print (testvar)
 
     return "read!"
-###########################
+########################### Statement
+@app.route("/api/uploadstatement", methods=['POST'])
+def uploadstatement():
+    data = request.files.getlist("file") ##files
+    
+    #TODO
+        #read pdf
+        #transform pdf into table
+        #post to db
 
+
+
+    res = {"message": "Statement upload succeeded!"}
+    return json.dumps(res), 200
+
+########################### Ledger
+@app.route("/api/uploadledger", methods=['POST'])
+def uploadledger():
+    data = request.files.getlist("file")
+
+    #TODO
+        #read excel , pd.read_xlsx(data[0])
+    f = pd.read_excel(data[0])
+    print(f)
+        #transform excel into table
+        #post to db
+    res = {"message": "Ledger upload succeeded!"}
+    return json.dumps(res), 200
 
 if __name__ == "__main__":
     app.run()
