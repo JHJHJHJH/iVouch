@@ -51,15 +51,15 @@ class NewProject extends Component{
         console.log(json.message);
 
         //statement
-        const statementFiles = this.state.Statement;
-        const formData2 = new FormData();
-        for (let i = 0; i < statementFiles.length; i++) {
-            formData2.append(`file`, statementFiles[i], statementFiles[i].name)
-        };
-        const result2 = await fetch(`/api/uploadstatement`, {
-            body: formData2,
-            method : 'post'
-        });
+        // const statementFiles = this.state.Statement;
+        // const formData2 = new FormData();
+        // for (let i = 0; i < statementFiles.length; i++) {
+        //     formData2.append(`file`, statementFiles[i], statementFiles[i].name)
+        // };
+        // const result2 = await fetch(`/api/uploadstatement`, {
+        //     body: formData2,
+        //     method : 'post'
+        // });
     }
     handleSubmit2 = async() =>{
         const invoiceFiles = this.state.Invoice;
@@ -88,6 +88,7 @@ class NewProject extends Component{
         console.log( res1 );
         console.log( res2 );
     }
+
     render(){
 
         const { classes } = this.props;
@@ -140,7 +141,7 @@ class NewProject extends Component{
                 <div id="upload-ledger">
                     <DragDrop2 type={"Ledger"} onComplete={this.handleComplete}/>
                 </div>
-                <Button onClick={this.handleSubmit2} variant="contained"  color="primary" className={classes.submitBtn}>Submit</Button>
+                <Button onClick={this.handleSubmit} variant="contained"  color="primary" className={classes.submitBtn}>Submit</Button>
                 
                 
             </>

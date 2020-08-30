@@ -127,13 +127,26 @@ def uploadledger():
     data = request.files.getlist("file")
 
     #TODO
-        #read excel , pd.read_xlsx(data[0])
+    #read excel , pd.read_xlsx(data[0])
     f = pd.read_excel(data[0])
     print(f)
-        #transform excel into table
-        #post to db
+    #transform excel into table
+    #post to db
     res = {"message": "Ledger upload succeeded!"}
     return json.dumps(res), 200
+
+@app.route("/api/getinvoice", methods = ['GET'])
+def getinvoice():
+    try:
+        dynamodb = boto3.resource("dynamodb")
+        table = dynamodb.Table("invoices")
+        response = table.scan()
+        return response, 200
+
+    except Exception as e:
+        err = {"message": str(e)}
+        print(str(e))
+        return json.dumps(err), 400
 
 if __name__ == "__main__":
     app.run()

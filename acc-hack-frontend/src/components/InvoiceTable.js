@@ -41,14 +41,65 @@ const columns = [
   },
 ];
 
+function arrangeHeaders( headers ){
+  const newheaders = headers.filter(item => item !== "invoice_number" || item !== "seller_name");
+  newheaders.unshift("seller_name");
+  newheaders.unshift("invoice_number");
+
+  return newheaders;
+}
+
+function CapitalizeHeader( header ){
+
+  var splitstr = header.split('_');
+  for (let i = 0; i < splitstr.length; i++) {
+    splitstr[i] = splitstr[i].charAt(0).toUpperCase() + splitstr[i].substring(1);    
+  }
+  return splitstr.join(' ');
+
+}
 class InvoiceTable extends Component {
-    
+    constructor(){
+      super()
+      this.state = {
+          Header : [],
+          Invoice : []
+      }
+      
+    }
+
+    async componentDidMount(){
+      try {
+        const res = await fetch('/api/getinvoice');
+        const json = await res.json();
+        const data = json["Items"];
+        const longestObj = data.reduce( function (prev, current) {
+          return (Object.keys(prev).length > Object.keys(current).length) ? prev: current
+        })
+        const headers = Object.keys(longestObj);
+        const newheaders = arrangeHeaders( headers );
+
+        const columns = newheaders.map( h =>  ({
+          name: CapitalizeHeader(h),
+          selector: h,
+          sortable: true,
+          right: true,
+          mminWidth:"200px"
+         }));
+        
+        this.setState({ Header: columns })
+        this.setState({ Invoice: data})
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     render( ) {
         return (
             <DataTable
                 title="Invoices"
-                columns={columns}
-                data={data}
+                columns={this.state.Header}
+                data={this.state.Invoice}
                 dense={true}
             />
         )
