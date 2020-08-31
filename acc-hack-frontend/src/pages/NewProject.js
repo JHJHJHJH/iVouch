@@ -23,13 +23,29 @@ class NewProject extends Component{
         this.state = {
             Invoice : [],
             Ledger : [],
-            Statement : []
+            Statement : [],
+            user: "",
+            projectName: "",
+            company:"",
+            address1:"",
+            address2:""
         }
-        
+        this.handleChange = this.handleChange.bind(this);
     }
-    // handleLanguage = (langValue) => {
-    //     this.setState({language: langValue});
-    // }
+    componentDidMount(){
+        this.setState( { ["user"]: this.props.user});
+    }
+    
+    handleChange(e){
+        const target = e.target;
+        const value = target.value;
+        const name = target.name;
+
+        this.setState({
+            [name] : value
+        })
+    }
+    
     handleComplete = ( type, files ) => {
         this.setState({[type]: files})
     }
@@ -48,18 +64,7 @@ class NewProject extends Component{
         });
         
         const json = await result.json();
-        console.log(json.message);
-
-        //statement
-        // const statementFiles = this.state.Statement;
-        // const formData2 = new FormData();
-        // for (let i = 0; i < statementFiles.length; i++) {
-        //     formData2.append(`file`, statementFiles[i], statementFiles[i].name)
-        // };
-        // const result2 = await fetch(`/api/uploadstatement`, {
-        //     body: formData2,
-        //     method : 'post'
-        // });
+        console.log(json);
     }
     handleSubmit2 = async() =>{
         const invoiceFiles = this.state.Invoice;
@@ -89,6 +94,76 @@ class NewProject extends Component{
         console.log( res2 );
     }
 
+    handleSubmit3 = async () => {
+        //async submit invoice, ledger, statement
+            //Invoice
+        const invoiceFiles = this.state.Invoice;
+        const invoiceformData = new FormData();
+        for (let i = 0; i < invoiceFiles.length; i++) {
+            invoiceformData.append(`file`, invoiceFiles[i], invoiceFiles[i].name)
+        };
+            //ledger
+        const ledgerFiles = this.state.Ledger;
+        const ledgerformData = new FormData();
+        for (let i = 0; i < ledgerFiles.length; i++) {
+            ledgerformData.append(`file`, ledgerFiles[i], ledgerFiles[i].name)
+        };
+
+        // const ledgerResult = await fetch(`/api/uploadledger`, {
+        //     body: ledgerformData,
+        //     method : 'post'
+
+        // });
+        
+        // const ledgerJson = await ledgerResult.json();
+        // console.log(ledgerJson);
+            //Statement
+        const statementFiles = this.state.Statement;
+        const statementformData = new FormData();
+        for (let i = 0; i < statementFiles.length; i++) {
+            statementformData.append(`file`, statementFiles[i], statementFiles[i].name)
+        };
+        
+        // const statementJson = await statementResult.json();
+        // console.log(statementJson);
+
+        let [invoiceJson, statementJson, ledgerJson] = await Promise.all([
+            fetch(`/api/uploadinvoice`, {body: invoiceformData, method: 'post'}).then(response => response.json()),
+            fetch(`/api/uploadstatement`, {body: statementformData, method: 'post'}).then(response => response.json()),
+            fetch(`/api/uploadledger`, {body: ledgerformData, method: 'post'}).then(response => response.json()),
+        ]);
+        //package 3 responses with project info
+        const obj = {
+            "username": this.state.user,
+            "projects": [
+                {
+                    "name": this.state.projectName,
+                    "information" : {
+                        "client": this.state.company,
+                        "address1" : this.state.address1,
+                        "address2" : this.state.address2
+                    },
+                    "invoices" : invoiceJson,
+                    "statement" : statementJson,
+                    "ledger": ledgerJson
+                }
+            ]
+        }
+        console.log( obj );
+
+        //post to dynamodb
+        const res =  await fetch(`/api/newproject`, {
+                headers: {
+                    'Accept': 'application/json',
+                    "Content-Type" :"application/json"
+                },
+                body: JSON.stringify(obj),
+                method : 'post'
+            });
+        
+
+    };
+
     render(){
 
         const { classes } = this.props;
@@ -100,9 +175,11 @@ class NewProject extends Component{
                 <TextField
                     className={classes.root}
                     id="outlined-required"
-                    label="Project Name"
-                    defaultValue="Project Name"
+                    helperText="Project Name"
+                    placeholder="Project Name"
                     variant="outlined"
+                    name="projectName"
+                    onChange={this.handleChange}
                     
                 />
                 </div>
@@ -110,25 +187,31 @@ class NewProject extends Component{
                 <TextField
                     className={classes.root}
                     id="outlined-required"
-                    label="Company Name"
-                    defaultValue="Company Name"
+                    helperText="Company Name"
+                    placeholder="Company Name"
                     variant="outlined"
+                    name="company"
+                    onChange={this.handleChange}
                 />
                 </div>
                 <div>
                 <TextField
                     className={classes.root}
                     id="outlined-required"
-                    label="Address #1"
-                    defaultValue="Address #1"
+                    helperText="Address #1"
+                    placeholder="Address #1"
                     variant="outlined"
+                    name="address1"
+                    onChange={this.handleChange}
                 />
                 <TextField
                     className={classes.root}
                     id="outlined-required"
-                    label="Address #2"
-                    defaultValue="Address #2"
+                    helperText="Address #2"
+                    placeholder="Address #2"
                     variant="outlined"
+                    name="address2"
+                    onChange={this.handleChange}
                 />
                 </div>
                 <h2>Upload Files</h2>
@@ -141,7 +224,7 @@ class NewProject extends Component{
                 <div id="upload-ledger">
                     <DragDrop2 type={"Ledger"} onComplete={this.handleComplete}/>
                 </div>
-                <Button onClick={this.handleSubmit} variant="contained"  color="primary" className={classes.submitBtn}>Submit</Button>
+                <Button onClick={this.handleSubmit3} variant="contained"  color="primary" className={classes.submitBtn}>Submit</Button>
                 
                 
             </>

@@ -6,6 +6,9 @@ import json
 import traceback
 import pandas as pd
 import numpy as np
+import pprint
+import tabula
+from decimal import Decimal
 
 app = Flask(__name__)
 
@@ -52,7 +55,7 @@ def putInvoice( entry ):
     return response["ResponseMetadata"]["HTTPStatusCode"]  
 ###############
 
-@app.route("/api/uploadinvoice", methods=['GET', 'POST'])
+@app.route("/api/uploadinvoice2", methods=['GET', 'POST'])
 def ocr():
     try:
         data = request.files.getlist("file")
@@ -106,47 +109,142 @@ def postfile():
         print (testvar)
 
     return "read!"
+
+@app.route("/api/uploadinvoice", methods=['POST'])
+def uploadinvoice():
+    try:
+        data = request.files.getlist("file")
+
+        print('reading...')
+        files = []
+        for d in data:
+            print(d)
+            files.append(('file', d.read()))
+            
+        url = "https://app.nanonets.com/api/v2/OCR/Model/298a2eb1-5582-436a-946b-f905012e90d2/LabelFile/"
+
+        payload = {}
+
+        headers = {
+            'accept': 'multipart/form-data',
+            'Authorization': 'Basic TUpxbW82VnBqcXFfZXhOT2d5SUdrYTFaYUM2U19FWUg6'
+        }
+        
+        print("Posting to nanonets...")
+        response1 = requests.request("POST", url, headers=headers, data = payload, files = files)
+
+        results = response1.json()["result"]
+
+        invoiceLst = []
+        for result in results:
+            prediction = result["prediction"]
+            invoiceObj = {}
+            for x in prediction:
+                invoiceObj[ x["label"] ]= x["ocr_text"]
+                print(x["label"] + " : " + invoiceObj[x["label"]])
+            invoiceLst.append(invoiceObj)
+
+        res = {"message": "Invoice upload succeeded!"}
+        return json.dumps(invoiceLst), 200
+
+    except Exception as e:
+        err = {"message": str(e)}
+        print(str(e))
+        return json.dumps(err), 400
+
 ########################### Statement
 @app.route("/api/uploadstatement", methods=['POST'])
 def uploadstatement():
     data = request.files.getlist("file") ##files
-    
-    #TODO
-        #read pdf
-        #transform pdf into table
-        #post to db
+    # Read pdf into list of DataFrame
+    dfLst = tabula.read_pdf(data[0], pages='all', output_format='dataframe')
+    df = dfLst[0]
+    print(df)
+    df = df.replace(np.nan, '', regex=True)
 
+    dic = df.to_dict(orient='records')
+    obj = json.dumps(dic, indent=4 ,sort_keys=True, default=str)
 
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(obj)
 
     res = {"message": "Statement upload succeeded!"}
-    return json.dumps(res), 200
+    return obj, 200
 
 ########################### Ledger
 @app.route("/api/uploadledger", methods=['POST'])
 def uploadledger():
     data = request.files.getlist("file")
 
-    #TODO
-    #read excel , pd.read_xlsx(data[0])
-    f = pd.read_excel(data[0])
-    print(f)
-    #transform excel into table
-    #post to db
-    res = {"message": "Ledger upload succeeded!"}
-    return json.dumps(res), 200
+    df = pd.read_excel(data[0]) #assume 1 ledger file
+    df = df.replace(np.nan, '', regex=True)
 
+    dic = df.to_dict(orient='records')
+    obj = json.dumps(dic, indent=4 ,sort_keys=True, default=str)
+
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(obj)
+
+    res = {"message": "Ledger upload succeeded!"}
+    return obj, 200
+
+
+##################### GET INVOICES
 @app.route("/api/getinvoice", methods = ['GET'])
 def getinvoice():
     try:
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table("invoices")
         response = table.scan()
+        
+
+    except Exception as e:
+        err = {"message": str(e)}
+        print(str(e))
+        return json.dumps(err), 400
+
+################### NEW PROJECT
+@app.route("/api/newproject", methods = ['POST'])
+def newproject():
+    try:
+        content = json.loads( json.dumps(request.json) , parse_float=Decimal)
+        
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(content)
+        
+        dynamodb = boto3.resource("dynamodb")
+        table = dynamodb.Table("ivouch")
+        response = table.put_item(
+            Item = content,
+            ConditionExpression = "attribute_not_exists(username)"
+        )
+
+
+        #project Name
+            #project info
+                #client
+                #address
+                #phone
+            #invoices
+                #1
+                #2
+                #3
+            #ledger
+                #entry1
+                #entry2
+                #entry3
+            #statement
+                #entry1
+                #entry2
+                #entry3
+            
         return response, 200
 
     except Exception as e:
         err = {"message": str(e)}
         print(str(e))
         return json.dumps(err), 400
+
 
 if __name__ == "__main__":
     app.run()

@@ -51,7 +51,7 @@ function App() {
                 <Route path="/invoices" component={InvoiceTable} exact/>
                 <Route path="/ledger" component={LedgerTable} exact/>
                 <Route path="/bank" component={BankTable} exact/>
-                <Route path="/newproject" component={NewProject} exact/>
+                <Route path="/newproject" component={()=> (<NewProject user="admin"/>)}  exact/>
                 
                 {/* Must be placed last */}
                 {/* <Route component= {NotFoundPage} />  */}
