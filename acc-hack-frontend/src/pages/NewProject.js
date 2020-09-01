@@ -50,49 +50,49 @@ class NewProject extends Component{
         this.setState({[type]: files})
     }
 
-    handleSubmit = async () => {
-        //invoice
-        const invoiceFiles = this.state.Invoice;
-        const formData = new FormData();
-        for (let i = 0; i < invoiceFiles.length; i++) {
-            formData.append(`file`, invoiceFiles[i], invoiceFiles[i].name)
-        };
+    // handleSubmit = async () => {
+    //     //invoice
+    //     const invoiceFiles = this.state.Invoice;
+    //     const formData = new FormData();
+    //     for (let i = 0; i < invoiceFiles.length; i++) {
+    //         formData.append(`file`, invoiceFiles[i], invoiceFiles[i].name)
+    //     };
 
-        const result = await fetch(`/api/uploadinvoice`, {
-            body: formData,
-            method : 'post'
-        });
+    //     const result = await fetch(`/api/uploadinvoice`, {
+    //         body: formData,
+    //         method : 'post'
+    //     });
         
-        const json = await result.json();
-        console.log(json);
-    }
-    handleSubmit2 = async() =>{
-        const invoiceFiles = this.state.Invoice;
-        const invoiceFormData = new FormData();
-        for (let i = 0; i < invoiceFiles.length; i++) {
-            invoiceFormData.append(`file`, invoiceFiles[i], invoiceFiles[i].name)
-        };
+    //     const json = await result.json();
+    //     console.log(json);
+    // }
+    // handleSubmit2 = async() =>{
+    //     const invoiceFiles = this.state.Invoice;
+    //     const invoiceFormData = new FormData();
+    //     for (let i = 0; i < invoiceFiles.length; i++) {
+    //         invoiceFormData.append(`file`, invoiceFiles[i], invoiceFiles[i].name)
+    //     };
 
-        const ledgerFiles = this.state.Ledger;
-        const ledgerFormData = new FormData();
-        for (let i = 0; i < ledgerFiles.length; i++) {
-            ledgerFormData.append(`file`, ledgerFiles[i], ledgerFiles[i].name)
-        };
+    //     const ledgerFiles = this.state.Ledger;
+    //     const ledgerFormData = new FormData();
+    //     for (let i = 0; i < ledgerFiles.length; i++) {
+    //         ledgerFormData.append(`file`, ledgerFiles[i], ledgerFiles[i].name)
+    //     };
 
-        const statementFiles = this.state.Statement;
-        const statementFormData = new FormData();
-        for (let i = 0; i < statementFiles.length; i++) {
-            statementFormData.append(`file`, statementFiles[i], statementFiles[i].name)
-        };
+    //     const statementFiles = this.state.Statement;
+    //     const statementFormData = new FormData();
+    //     for (let i = 0; i < statementFiles.length; i++) {
+    //         statementFormData.append(`file`, statementFiles[i], statementFiles[i].name)
+    //     };
 
-        let [res1, res2] = await Promise.all([
-            fetch(`/api/uploadstatement`, {body: statementFormData, method: 'post'}).then(response => response.json()),
-            fetch(`/api/uploadledger`, {body: ledgerFormData, method: 'post'}).then(response => response.json()),
-        ]);
+    //     let [res1, res2] = await Promise.all([
+    //         fetch(`/api/uploadstatement`, {body: statementFormData, method: 'post'}).then(response => response.json()),
+    //         fetch(`/api/uploadledger`, {body: ledgerFormData, method: 'post'}).then(response => response.json()),
+    //     ]);
 
-        console.log( res1 );
-        console.log( res2 );
-    }
+    //     console.log( res1 );
+    //     console.log( res2 );
+    // }
 
     handleSubmit3 = async () => {
         //async submit invoice, ledger, statement
@@ -120,6 +120,9 @@ class NewProject extends Component{
             fetch(`/api/uploadstatement`, {body: statementformData, method: 'post'}).then(response => response.json()),
             fetch(`/api/uploadledger`, {body: ledgerformData, method: 'post'}).then(response => response.json()),
         ]);
+        console.log(invoiceJson);
+        console.log(statementJson);
+        console.log(ledgerJson);
         //package 3 responses with project info
         const obj = {
             "username": this.state.user,
@@ -140,7 +143,7 @@ class NewProject extends Component{
         console.log( obj );
 
         //post to dynamodb
-        const res =  await fetch(`/api/newproject`, {
+        await fetch(`/api/newproject`, {
                 headers: {
                     'Accept': 'application/json',
                     "Content-Type" :"application/json"
@@ -148,8 +151,8 @@ class NewProject extends Component{
                 body: JSON.stringify(obj),
                 method : 'post'
             });
-        
-
+        // const data = await res.json();
+        // console.log( data );
     };
 
     render(){

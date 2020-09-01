@@ -144,6 +144,7 @@ def uploadinvoice():
                 print(x["label"] + " : " + invoiceObj[x["label"]])
             invoiceLst.append(invoiceObj)
 
+        print("uploading invoice...")
         res = {"message": "Invoice upload succeeded!"}
         return json.dumps(invoiceLst), 200
 
@@ -167,7 +168,7 @@ def uploadstatement():
 
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(obj)
-
+    print("uploading statement...")
     res = {"message": "Statement upload succeeded!"}
     return obj, 200
 
@@ -182,9 +183,9 @@ def uploadledger():
     dic = df.to_dict(orient='records')
     obj = json.dumps(dic, indent=4 ,sort_keys=True, default=str)
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(obj)
-
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(obj)
+    print("uploading ledger...")
     res = {"message": "Ledger upload succeeded!"}
     return obj, 200
 
@@ -209,15 +210,15 @@ def newproject():
     try:
         content = json.loads( json.dumps(request.json) , parse_float=Decimal)
         
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(content)
+        # pp = pprint.PrettyPrinter(indent=4)
+        # pp.pprint(content)
         
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table("ivouch")
         response = table.put_item(
-            Item = content,
-            ReturnValues="UPDATED_NEW"
-        )            
+            Item = content
+        )       
+        print("creating new project...")
         return response, 200
 
     except Exception as e:
@@ -240,6 +241,7 @@ def getprojectinfo():
         response = table.get_item(
             Key = content
         )
+        
         return json.dumps(response["Item"], default=decimal_default), 200
 
     except Exception as e:

@@ -65,18 +65,14 @@ class InvoiceTable extends Component {
           Header : [],
           Invoice : []
       }
-      
     }
 
     async componentDidMount(){
       try {
-        // const res = await fetch('/api/getinvoice');
-        // const json = await res.json();
-        // const data = json["Items"];
         const data = this.props.invoices;
         const longestObj = data.reduce( function (prev, current) {
           return (Object.keys(prev).length > Object.keys(current).length) ? prev: current
-        })
+        });
         const headers = Object.keys(longestObj);
         const newheaders = arrangeHeaders( headers );
 
@@ -85,10 +81,10 @@ class InvoiceTable extends Component {
           selector: h,
           sortable: true,
           right: true,
-          mminWidth:"200px"
+          minWidth:"200px"
          }));
-        console.log(columns);
-        console.log(data);
+         console.log(columns);
+         console.log(data);
         this.setState({ Header: columns })
         this.setState({ Invoice: data})
       } catch (e) {

@@ -29,6 +29,25 @@ const useStyles = makeStyles((theme) => ({
 
 const username = "admin";
 
+function cleanJson( lstObj ) {
+  const newLstObj = []
+  for (let i = 0; i < lstObj.length; i++) {
+    const element = lstObj[i];
+    
+    Object.keys(element).forEach(key => element[key] === "" ? delete element[key] : "");
+    Object.keys(element).forEach(key =>{
+      if(key.split(" ").length > 1){
+        element[key.split(" ").join("_")]=  element[key] ;
+        delete element[key];
+      };
+    });
+    
+    newLstObj.push(element);
+  }
+
+  return newLstObj;
+}
+
 function App() {
   const classes = useStyles();
   const [userData, setUserData] = useState([]);
@@ -53,22 +72,23 @@ function App() {
   
       const json = await result.json();
       console.log(json);
-      let userData = json.projects;
+      const userData = json.projects;
 
       setUserData(userData);
-      let allProjects = userData.map(ele=> ele.name);
+      const allProjects = userData.map(ele=> ele.name);
       setProjects( allProjects);
 
-      let defaultProject = allProjects[0];
+      const defaultProject = allProjects[0];
       setWorking( defaultProject );
       
-
-      let found = userData.find( proj=> proj.name === defaultProject);
-      console.log(found);
+      const found = userData.find( proj=> proj.name === defaultProject);
+      const ledgers = cleanJson(found.ledger);
+      const statements = cleanJson(found.statement);
+      // console.log(found);
       setProjectInfo( found.information );
       setInvoices( found.invoices);
-      setStatements( found.statement);
-      setLedgers( found.ledger);
+      setStatements( statements);
+      setLedgers( ledgers);
       
     };
 
