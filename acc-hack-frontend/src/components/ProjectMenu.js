@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 // import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -16,31 +16,45 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SimpleSelect() {
+function ProjectMenu( props ) {
   const classes = useStyles();
-  const [age, setAge] = React.useState('');
+  const [workingProject, setWorkingProject] = useState('placeholder');
+  // const [otherProjects, setOtherProjects]= useState([]);
+  const [allProjects, setAllProjects] = useState([]);
 
   const handleChange = (event) => {
-    setAge(event.target.value);
+    let prevWorking = workingProject;
+    let newWorking = event.target.value;
+    
+    setWorkingProject(newWorking);
+    
+    if(prevWorking !== newWorking){
+      props.onProjectChange( newWorking )
+    };
   };
+
+  useEffect(() =>{
+    setAllProjects( props.projects );
+    setWorkingProject( props.working)
+  },[props]);
+  
 
   return (
     <div>
       <FormControl className={classes.formControl}>
         <Select
-            style={{color:"white"}}
-          value={age}
+          style={{color:"white"}}
+          value={workingProject}
           onChange={handleChange}
           displayEmpty
           className={classes.selectEmpty}
           inputProps={{ 'aria-label': 'Without label' }}
         >
-          <MenuItem value="">
-            <em>Some Project</em>
-          </MenuItem>
-          <MenuItem value={10}>Project 1</MenuItem>
-          <MenuItem value={20}>Project 2</MenuItem>
-          <MenuItem value={30}>Project 3</MenuItem>
+
+          { allProjects.map( (item,key) => (
+            <MenuItem key={key} value={item}>{item}</MenuItem>
+          ))}
+          
         </Select>
         <FormHelperText  style={{color:"white"}}>Current</FormHelperText>
       </FormControl>
@@ -48,3 +62,4 @@ export default function SimpleSelect() {
     </div>
   );
 }
+export default ProjectMenu;

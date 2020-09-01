@@ -59,8 +59,8 @@ function CapitalizeHeader( header ){
 
 }
 class InvoiceTable extends Component {
-    constructor(){
-      super()
+    constructor(props){
+      super(props)
       this.state = {
           Header : [],
           Invoice : []
@@ -70,9 +70,10 @@ class InvoiceTable extends Component {
 
     async componentDidMount(){
       try {
-        const res = await fetch('/api/getinvoice');
-        const json = await res.json();
-        const data = json["Items"];
+        // const res = await fetch('/api/getinvoice');
+        // const json = await res.json();
+        // const data = json["Items"];
+        const data = this.props.invoices;
         const longestObj = data.reduce( function (prev, current) {
           return (Object.keys(prev).length > Object.keys(current).length) ? prev: current
         })
@@ -86,7 +87,8 @@ class InvoiceTable extends Component {
           right: true,
           mminWidth:"200px"
          }));
-        
+        console.log(columns);
+        console.log(data);
         this.setState({ Header: columns })
         this.setState({ Invoice: data})
       } catch (e) {

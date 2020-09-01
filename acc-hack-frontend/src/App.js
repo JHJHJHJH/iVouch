@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import InvoiceTable from './components/InvoiceTable';
 import BankTable from './components/BankTable';
 import LedgerTable from './components/LedgerTable';
@@ -26,17 +26,70 @@ const useStyles = makeStyles((theme) => ({
 
   }
 }));
-  
+
+const username = "admin";
+
 function App() {
   const classes = useStyles();
+  const [userData, setUserData] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [projectInfo, setProjectInfo] = useState([]);
+  const [working, setWorking] = useState('');
+  const [invoices, setInvoices] = useState([]);
+  const [ledgers, setLedgers] = useState([]);
+  const [statements, setStatements] = useState([]);
+  
+
+  useEffect(() => {
+    async function fetchData(){
+      const result = await fetch('/api/projects', {
+        headers: {
+          'Accept': 'application/json',
+          "Content-Type" :"application/json"
+        },
+        body: JSON.stringify({ username: username }),
+        method: 'post'
+      });
+  
+      const json = await result.json();
+      console.log(json);
+      let userData = json.projects;
+
+      setUserData(userData);
+      let allProjects = userData.map(ele=> ele.name);
+      setProjects( allProjects);
+
+      let defaultProject = allProjects[0];
+      setWorking( defaultProject );
+      
+
+      let found = userData.find( proj=> proj.name === defaultProject);
+      console.log(found);
+      setProjectInfo( found.information );
+      setInvoices( found.invoices);
+      setStatements( found.statement);
+      setLedgers( found.ledger);
+      
+    };
+
+    fetchData();
+  }, []);
+
+  const handleProjectChange= (projectname) => {
+    setWorking(projectname);
+    let found = userData.find( proj=> proj.name === projectname);
+    setProjectInfo( found.information );
+    setInvoices( found.invoices);
+    setStatements( found.statement);
+    setLedgers( found.ledger);
+  };
 
   return (
     <Router>
       <Container fluid className={classes.container}>
         
         <Row className={classes.topnav}>
-          <TopNavbar/>
-          
+          <TopNavbar projects={projects} working={working} onProjectChange={handleProjectChange}/>
         </Row>
 
         <Row className={classes.body}>
@@ -47,11 +100,11 @@ function App() {
             <div id="page-body">
               <Switch>
                 <Route path="/" component={Dashboard} exact/>
-                <Route path="/compliance" component = {Compliance} exact/>
-                <Route path="/invoices" component={InvoiceTable} exact/>
-                <Route path="/ledger" component={LedgerTable} exact/>
-                <Route path="/bank" component={BankTable} exact/>
-                <Route path="/newproject" component={()=> (<NewProject user="admin"/>)}  exact/>
+                <Route path="/compliance" component={Compliance} exact/>
+                <Route path="/invoices" component={()=> (<InvoiceTable invoices={invoices}/>)}  exact/>
+                <Route path="/ledger" component={()=> (<LedgerTable ledgers={ledgers}/>)} exact/>
+                <Route path="/bank" component={()=> (<BankTable statements={statements}/>)} exact/>
+                <Route path="/newproject" component={()=> (<NewProject user={username}/>)}  exact/>
                 
                 {/* Must be placed last */}
                 {/* <Route component= {NotFoundPage} />  */}

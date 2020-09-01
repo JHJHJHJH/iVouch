@@ -1,54 +1,47 @@
 import React, {Component} from 'react';
 import DataTable from 'react-data-table-component';
 
-const data = [{ id: 1, title: 'Conan the Barbarian', year: '1982' },
-              { id: 2, title: 'Some movie2', year: '2002'}];
-              
-const columns = [
-  {
-    name: 'Invoice no.',
-    selector: 'title',
-    sortable: true,
-    maxWidth:"200px"
-  },
-  {
-    name: 'Invoice date',
-    selector: 'year',
-    sortable: true,
-    right: true,
-    maxWidth:"200px"
-  },
-  {
-    name: 'Invoice amount',
-    selector: 'year',
-    sortable: true,
-    right: true,
-    maxWidth:"200px"
-  },
-  {
-    name: 'Seller',
-    selector: 'year',
-    sortable: true,
-    right: true,
-    maxWidth:"200px"
-  },
-  {
-    name: 'Buyer',
-    selector: 'year',
-    sortable: true,
-    right: true,
-    maxWidth:"200px"
-  },
-];
-
 class LedgerTable extends Component {
+    constructor(props){
+      super(props)
+      this.state = {
+          Header : [],
+          Ledger : []
+      }
+    }
+
+    componentDidMount(){
+      try {
+        // const res = await fetch('/api/getinvoice');
+        // const json = await res.json();
+        // const data = json["Items"];
+        const data = this.props.ledgers;
+        
+        const headers = Object.keys(data[0]);
+        
+
+        const columns = headers.map( h =>  ({
+          name: h,
+          selector: h,
+          sortable: true,
+          right: true,
+          minWidth:"200px"
+        }));
+        console.log(columns);
+        console.log(data);
+        this.setState({ Header: columns })
+        this.setState({ Ledger: data})
+      } catch (e) {
+        console.error(e);
+      }
+    }
     
     render( ) {
         return (
             <DataTable
                 title="Ledger"
-                columns={columns}
-                data={data}
+                columns={this.state.Header}
+                data={this.state.Ledger}
                 dense={true}
             />
         )

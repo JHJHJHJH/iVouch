@@ -216,28 +216,8 @@ def newproject():
         table = dynamodb.Table("ivouch")
         response = table.put_item(
             Item = content,
-            ConditionExpression = "attribute_not_exists(username)"
-        )
-
-
-        #project Name
-            #project info
-                #client
-                #address
-                #phone
-            #invoices
-                #1
-                #2
-                #3
-            #ledger
-                #entry1
-                #entry2
-                #entry3
-            #statement
-                #entry1
-                #entry2
-                #entry3
-            
+            ReturnValues="UPDATED_NEW"
+        )            
         return response, 200
 
     except Exception as e:
@@ -245,6 +225,27 @@ def newproject():
         print(str(e))
         return json.dumps(err), 400
 
+def decimal_default(obj):
+    if isinstance(obj, Decimal):
+        return float(obj)
+    raise TypeError
+
+@app.route("/api/projects", methods = ['GET','POST'])
+def getprojectinfo():
+    try:
+        content = request.json
+        
+        dynamodb = boto3.resource("dynamodb")
+        table = dynamodb.Table("ivouch")
+        response = table.get_item(
+            Key = content
+        )
+        return json.dumps(response["Item"], default=decimal_default), 200
+
+    except Exception as e:
+        err = {"message": str(e)}
+        print(str(e))
+        return json.dumps(err), 400
 
 if __name__ == "__main__":
     app.run()

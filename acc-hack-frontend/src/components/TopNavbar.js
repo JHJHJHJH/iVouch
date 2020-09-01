@@ -37,9 +37,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function TopNavbar() {
+function TopNavbar(props) {
     const classes = useStyles();
 
+    const handleProjectChange= (projectname) => {
+        props.onProjectChange(projectname);
+    };
     return (
         <div className={classes.root}>
         <AppBar position="static" className={classes.topbar}>
@@ -49,7 +52,7 @@ function TopNavbar() {
             </IconButton>
             <Typography variant="h6" className={classes.title}> iVouch</Typography >
 
-            <ProjectMenu />
+            <ProjectMenu working={props.working} projects ={props.projects} onProjectChange={handleProjectChange} />
 
             <Button component={Link}to="/newproject"  variant="contained" className={classes.menuButton} >
                 {/* <Link  ></Link> */}

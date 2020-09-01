@@ -33,7 +33,7 @@ class NewProject extends Component{
         this.handleChange = this.handleChange.bind(this);
     }
     componentDidMount(){
-        this.setState( { ["user"]: this.props.user});
+        this.setState( { user: this.props.user});
     }
     
     handleChange(e){
@@ -109,24 +109,12 @@ class NewProject extends Component{
             ledgerformData.append(`file`, ledgerFiles[i], ledgerFiles[i].name)
         };
 
-        // const ledgerResult = await fetch(`/api/uploadledger`, {
-        //     body: ledgerformData,
-        //     method : 'post'
-
-        // });
-        
-        // const ledgerJson = await ledgerResult.json();
-        // console.log(ledgerJson);
-            //Statement
         const statementFiles = this.state.Statement;
         const statementformData = new FormData();
         for (let i = 0; i < statementFiles.length; i++) {
             statementformData.append(`file`, statementFiles[i], statementFiles[i].name)
         };
         
-        // const statementJson = await statementResult.json();
-        // console.log(statementJson);
-
         let [invoiceJson, statementJson, ledgerJson] = await Promise.all([
             fetch(`/api/uploadinvoice`, {body: invoiceformData, method: 'post'}).then(response => response.json()),
             fetch(`/api/uploadstatement`, {body: statementformData, method: 'post'}).then(response => response.json()),
