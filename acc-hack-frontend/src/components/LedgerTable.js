@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
-import DataTable from 'react-data-table-component';
-
+// import DataTable from 'react-data-table-component';
+import MUIDataTable from "mui-datatables";
 class LedgerTable extends Component {
   constructor(props){
     super(props);
@@ -14,9 +14,18 @@ class LedgerTable extends Component {
     try {
       const data = this.props.ledgers;
       
-      const headers = Object.keys(data[0]);
+      const allheaders =[]
+      for (let i = 0; i < data.length; i++) {
+        const keys = Object.keys(data[i]);
+        for (let j = 0; j < keys.length; j++) {
+          if(! allheaders.includes(keys[j])){
+            allheaders.push(keys[j]);
+          }
+        }
+      }
+      console.log(allheaders);
 
-      const columns = headers.map( h =>  ({
+      const columns = allheaders.map( h =>  ({
         name: h,
         selector: h,
         sortable: true,
@@ -35,10 +44,12 @@ class LedgerTable extends Component {
     
   render( ) {
       return (
-          <DataTable
+        // <div/>
+          <MUIDataTable
               title="Ledger"
               columns={this.state.Header}
-              // data={this.state.Ledger}
+              data={this.state.Ledger}
+              
               dense={true}
           />
       )

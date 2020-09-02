@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
-import DataTable from 'react-data-table-component';
-
+// import DataTable from 'react-data-table-component';
+import MUIDataTable from "mui-datatables";
 // const data = [{ id: 1, title: 'Conan the Barbarian', year: '1982' },
 //               { id: 2, title: 'Some movie2', year: '2002'}];
               
@@ -77,7 +77,7 @@ class InvoiceTable extends Component {
         const newheaders = arrangeHeaders( headers );
 
         const columns = newheaders.map( h =>  ({
-          name: CapitalizeHeader(h),
+          name: h,
           selector: h,
           sortable: true,
           right: true,
@@ -94,7 +94,7 @@ class InvoiceTable extends Component {
 
     render( ) {
         return (
-            <DataTable
+            <MUIDataTable
                 title="Invoices"
                 columns={this.state.Header}
                 data={this.state.Invoice}

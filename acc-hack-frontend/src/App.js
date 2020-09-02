@@ -10,6 +10,7 @@ import {Container, Row, Col} from 'react-bootstrap';
 import { makeStyles } from '@material-ui/core/styles';
 import TopNavbar from './components/TopNavbar';
 import NewProject from './pages/NewProject';
+import ProjectInfo from './components/ProjectInfo';
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -22,8 +23,10 @@ const useStyles = makeStyles((theme) => ({
   },
   body: {
     paddingLeft: 30,
-    paddingRight: 30,
-
+    paddingRight: 30
+  },
+  pagebody: {
+    marginTop: 50,
   }
 }));
 
@@ -116,14 +119,16 @@ function App() {
           <Col md={2}>
             <SideNavbar/>
           </Col>
-          <Col md={8}>
-            <div id="page-body">
+          <Col md={10}>
+            <ProjectInfo info={projectInfo} project={working}/>
+            <div id="page-body" className={classes.pagebody}>
+              
               <Switch>
                 <Route path="/" component={Dashboard} exact/>
                 <Route path="/compliance" component={Compliance} exact/>
                 <Route path="/invoices" component={()=> (<InvoiceTable invoices={invoices}/>)}  exact/>
                 <Route path="/ledger" component={()=> (<LedgerTable ledgers={ledgers}/>)} exact/>
-                <Route path="/bank" component={()=> (<BankTable statements={statements}/>)} exact/>
+                <Route path="/statement" component={()=> (<BankTable statements={statements}/>)} exact/>
                 <Route path="/newproject" component={()=> (<NewProject user={username}/>)}  exact/>
                 
                 {/* Must be placed last */}
