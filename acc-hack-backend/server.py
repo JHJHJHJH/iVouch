@@ -10,6 +10,7 @@ import pprint
 import tabula
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key
+import time
 
 app = Flask(__name__)
 
@@ -206,7 +207,7 @@ def getinvoice():
         return json.dumps(err), 400
 
 ################### NEW PROJECT
-@app.route("/api/newproject", methods = ['POST'])
+@app.route("/api/newproject2", methods = ['POST'])
 def newproject():
     try:
         content = json.loads( json.dumps(request.json) , parse_float=Decimal)
@@ -232,8 +233,9 @@ def projectExist(allProjects, checkProject ):
         return True
     else:
         return False
-
-@app.route("/api/nproj", methods = ['POST', 'GET'])
+               
+        
+@app.route("/api/newproject", methods = ['POST', 'GET'])
 def newproject2():
     try:
         data = json.loads( json.dumps(request.json) , parse_float=Decimal)
@@ -258,19 +260,22 @@ def newproject2():
             #if new project, add new obj to ['projects']
             if projectExist( dbProjects, reqProjectName ): #IF Project exists
                 #UPDATE existing project
-                #PUT ITEM TO REPLACE
-                for i in range( len(dbProjects)):
-                    if dbJson['projects'][i]['name'] == reqProjectName:
-                        dbJson['projects'][i]['information'] = reqProjectData['information']
-                        dbJson['projects'][i]['invoices'] = reqProjectData['invoices']
-                        dbJson['projects'][i]['ledger'] = reqProjectData['ledger']
-                        dbJson['projects'][i]['statement'] = reqProjectData['ledger']
 
-                response = table.put_item(
-                    Item = dbJson,
-                    ReturnValues='ALL_OLD',
-                )
-                return json.dumps(response["Attributes"], default=decimal_default), 200
+                raise Exception (reqProjectName + " exists ! Please use a unique project name")
+
+                #PUT ITEM TO REPLACE
+                # for i in range( len(dbProjects)):
+                #     if dbJson['projects'][i]['name'] == reqProjectName:
+                #         dbJson['projects'][i]['information'] = reqProjectData['information']
+                #         dbJson['projects'][i]['invoices'] = reqProjectData['invoices']
+                #         dbJson['projects'][i]['ledger'] = reqProjectData['ledger']
+                #         dbJson['projects'][i]['statement'] = reqProjectData['ledger']
+
+                # response = table.put_item(
+                #     Item = dbJson,
+                #     ReturnValues='ALL_OLD',
+                # )
+                # return json.dumps(response["Attributes"], default=decimal_default), 200
             else: #IF Project does not exist
                 #ADD NEW to ['projects']
                 response = table.update_item(
@@ -286,11 +291,11 @@ def newproject2():
                     },
                     ReturnValues="UPDATED_NEW"
                 )
-
-            return json.dumps(response["Item"], default=decimal_default), 200
+                body = {"message": "success"}
+                body["Item"] = response["Attributes"]
+                return json.dumps(body, default=decimal_default), 200
         else: #ELSE IF  USER DOES NOT EXIST
             raise Exception("User does not exist !")
-
 
     except Exception as e:
         err = {"message": str(e)}
@@ -312,7 +317,7 @@ def getprojectinfo():
         response = table.get_item(
             Key = content
         )
-        
+        time.sleep(2)
         return json.dumps(response["Item"], default=decimal_default), 200
 
     except Exception as e:

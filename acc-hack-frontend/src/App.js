@@ -6,11 +6,13 @@ import SideNavbar from './components/SideNavbar';
 import Dashboard from './components/Dashboard';
 import Compliance from './components/Compliance'
 import {BrowserRouter as Router, Route,Switch} from 'react-router-dom';
+import { withRouter} from 'react-router-dom';
 import {Container, Row, Col} from 'react-bootstrap';
 import { makeStyles } from '@material-ui/core/styles';
 import TopNavbar from './components/TopNavbar';
 import NewProject from './pages/NewProject';
 import ProjectInfo from './components/ProjectInfo';
+
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -129,11 +131,11 @@ function App() {
                 <Route path="/invoices" component={()=> (<InvoiceTable invoices={invoices}/>)}  exact/>
                 <Route path="/ledger" component={()=> (<LedgerTable ledgers={ledgers}/>)} exact/>
                 <Route path="/statement" component={()=> (<BankTable statements={statements}/>)} exact/>
-                <Route path="/newproject" component={()=> (<NewProject user={username}/>)}  exact/>
+                <Route path="/newproject" component={()=> (<NewProject user={username} projects={projects} />)}  exact/>
                 
                 {/* Must be placed last */}
                 {/* <Route component= {NotFoundPage} />  */}
-              </Switch>
+              </Switch> 
               
             </div>
           </Col>
@@ -145,4 +147,4 @@ function App() {
 }
 
 
-export default App;
+export default withRouter(App);
