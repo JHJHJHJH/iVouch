@@ -6,10 +6,13 @@ import SideNavbar from './components/SideNavbar';
 import Dashboard from './components/Dashboard';
 import Compliance from './components/Compliance'
 import {BrowserRouter as Router, Route,Switch} from 'react-router-dom';
+import { withRouter} from 'react-router-dom';
 import {Container, Row, Col} from 'react-bootstrap';
 import { makeStyles } from '@material-ui/core/styles';
 import TopNavbar from './components/TopNavbar';
 import NewProject from './pages/NewProject';
+import ProjectInfo from './components/ProjectInfo';
+
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -22,12 +25,33 @@ const useStyles = makeStyles((theme) => ({
   },
   body: {
     paddingLeft: 30,
-    paddingRight: 30,
-
+    paddingRight: 30
+  },
+  pagebody: {
+    marginTop: 50,
   }
 }));
 
 const username = "admin";
+
+function cleanJson( lstObj ) {
+  const newLstObj = []
+  for (let i = 0; i < lstObj.length; i++) {
+    const element = lstObj[i];
+    
+    Object.keys(element).forEach(key => element[key] === "" ? delete element[key] : "");
+    Object.keys(element).forEach(key =>{
+      if(key.split(" ").length > 1){
+        element[key.split(" ").join("_")]=  element[key] ;
+        delete element[key];
+      };
+    });
+    
+    newLstObj.push(element);
+  }
+
+  return newLstObj;
+}
 
 function App() {
   const classes = useStyles();
@@ -53,22 +77,23 @@ function App() {
   
       const json = await result.json();
       console.log(json);
-      let userData = json.projects;
+      const userData = json.projects;
 
       setUserData(userData);
-      let allProjects = userData.map(ele=> ele.name);
+      const allProjects = userData.map(ele=> ele.name);
       setProjects( allProjects);
 
-      let defaultProject = allProjects[0];
+      const defaultProject = allProjects[0];
       setWorking( defaultProject );
       
-
-      let found = userData.find( proj=> proj.name === defaultProject);
-      console.log(found);
+      const found = userData.find( proj=> proj.name === defaultProject);
+      const ledgers = cleanJson(found.ledger);
+      const statements = cleanJson(found.statement);
+      // console.log(found);
       setProjectInfo( found.information );
       setInvoices( found.invoices);
-      setStatements( found.statement);
-      setLedgers( found.ledger);
+      setStatements( statements);
+      setLedgers( ledgers);
       
     };
 
@@ -96,19 +121,21 @@ function App() {
           <Col md={2}>
             <SideNavbar/>
           </Col>
-          <Col md={8}>
-            <div id="page-body">
+          <Col md={10}>
+            <ProjectInfo info={projectInfo} project={working}/>
+            <div id="page-body" className={classes.pagebody}>
+              
               <Switch>
                 <Route path="/" component={Dashboard} exact/>
                 <Route path="/compliance" component={Compliance} exact/>
                 <Route path="/invoices" component={()=> (<InvoiceTable invoices={invoices}/>)}  exact/>
                 <Route path="/ledger" component={()=> (<LedgerTable ledgers={ledgers}/>)} exact/>
-                <Route path="/bank" component={()=> (<BankTable statements={statements}/>)} exact/>
-                <Route path="/newproject" component={()=> (<NewProject user={username}/>)}  exact/>
+                <Route path="/statement" component={()=> (<BankTable statements={statements}/>)} exact/>
+                <Route path="/newproject" component={()=> (<NewProject user={username} projects={projects} />)}  exact/>
                 
                 {/* Must be placed last */}
                 {/* <Route component= {NotFoundPage} />  */}
-              </Switch>
+              </Switch> 
               
             </div>
           </Col>
@@ -120,4 +147,4 @@ function App() {
 }
 
 
-export default App;
+export default withRouter(App);

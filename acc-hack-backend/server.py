@@ -9,6 +9,8 @@ import numpy as np
 import pprint
 import tabula
 from decimal import Decimal
+from boto3.dynamodb.conditions import Key
+import time
 
 app = Flask(__name__)
 
@@ -144,6 +146,7 @@ def uploadinvoice():
                 print(x["label"] + " : " + invoiceObj[x["label"]])
             invoiceLst.append(invoiceObj)
 
+        print("uploading invoice...")
         res = {"message": "Invoice upload succeeded!"}
         return json.dumps(invoiceLst), 200
 
@@ -167,7 +170,7 @@ def uploadstatement():
 
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(obj)
-
+    print("uploading statement...")
     res = {"message": "Statement upload succeeded!"}
     return obj, 200
 
@@ -182,9 +185,9 @@ def uploadledger():
     dic = df.to_dict(orient='records')
     obj = json.dumps(dic, indent=4 ,sort_keys=True, default=str)
 
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(obj)
-
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(obj)
+    print("uploading ledger...")
     res = {"message": "Ledger upload succeeded!"}
     return obj, 200
 
@@ -204,21 +207,95 @@ def getinvoice():
         return json.dumps(err), 400
 
 ################### NEW PROJECT
-@app.route("/api/newproject", methods = ['POST'])
+@app.route("/api/newproject2", methods = ['POST'])
 def newproject():
     try:
         content = json.loads( json.dumps(request.json) , parse_float=Decimal)
-        
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(content)
-        
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table("ivouch")
+        
         response = table.put_item(
-            Item = content,
-            ReturnValues="UPDATED_NEW"
-        )            
+            Item = content
+        )       
+        print("creating new project...")
         return response, 200
+
+    except Exception as e:
+        err = {"message": str(e)}
+        print(str(e))
+        return json.dumps(err), 400
+
+################### NEW PROJECT
+
+def projectExist(allProjects, checkProject ):
+    allProjectNames = [ p['name'] for p in allProjects]
+    if (checkProject in allProjectNames):
+        return True
+    else:
+        return False
+               
+        
+@app.route("/api/newproject", methods = ['POST', 'GET'])
+def newproject2():
+    try:
+        data = json.loads( json.dumps(request.json) , parse_float=Decimal)
+        reqUser = data['username']
+        reqProjectName = data['projects'][0]['name']
+        reqProjectData = data['projects'][0]
+
+        dynamodb = boto3.resource("dynamodb")
+        table = dynamodb.Table("ivouch")
+
+        #get key
+        response = table.get_item(
+            Key = {
+                'username': reqUser
+            }
+        )
+        temp = response
+        if 'Item' in temp: #if user EXISTS 
+            dbJson = temp['Item']
+            dbProjects = dbJson['projects']
+            #if project exist, update 
+            #if new project, add new obj to ['projects']
+            if projectExist( dbProjects, reqProjectName ): #IF Project exists
+                #UPDATE existing project
+
+                raise Exception (reqProjectName + " exists ! Please use a unique project name")
+
+                #PUT ITEM TO REPLACE
+                # for i in range( len(dbProjects)):
+                #     if dbJson['projects'][i]['name'] == reqProjectName:
+                #         dbJson['projects'][i]['information'] = reqProjectData['information']
+                #         dbJson['projects'][i]['invoices'] = reqProjectData['invoices']
+                #         dbJson['projects'][i]['ledger'] = reqProjectData['ledger']
+                #         dbJson['projects'][i]['statement'] = reqProjectData['ledger']
+
+                # response = table.put_item(
+                #     Item = dbJson,
+                #     ReturnValues='ALL_OLD',
+                # )
+                # return json.dumps(response["Attributes"], default=decimal_default), 200
+            else: #IF Project does not exist
+                #ADD NEW to ['projects']
+                response = table.update_item(
+                    Key={
+                        'username': reqUser
+                    },
+                    UpdateExpression= "SET #p = list_append(#p, :data)",
+                    ExpressionAttributeNames = {
+                        '#p' : 'projects',
+                    },
+                    ExpressionAttributeValues= {
+                        ':data': [reqProjectData]
+                    },
+                    ReturnValues="UPDATED_NEW"
+                )
+                body = {"message": "success"}
+                body["Item"] = response["Attributes"]
+                return json.dumps(body, default=decimal_default), 200
+        else: #ELSE IF  USER DOES NOT EXIST
+            raise Exception("User does not exist !")
 
     except Exception as e:
         err = {"message": str(e)}
@@ -240,6 +317,7 @@ def getprojectinfo():
         response = table.get_item(
             Key = content
         )
+        time.sleep(2)
         return json.dumps(response["Item"], default=decimal_default), 200
 
     except Exception as e:

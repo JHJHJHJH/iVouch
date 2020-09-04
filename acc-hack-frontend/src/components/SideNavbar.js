@@ -39,14 +39,14 @@ const SideNavbar = () => (
           <ListItemText primary="Invoices" />
         </ListItem>
 
-        <ListItem button component={Link} to="/Ledger">
+        <ListItem button component={Link} to="/ledger">
             <ListItemIcon>
                 <ExposureIcon />
             </ListItemIcon> 
           <ListItemText primary="Ledger" />
         </ListItem>
 
-        <ListItem button component={Link} to="/Bank">
+        <ListItem button component={Link} to="/statement">
             <ListItemIcon>
                 <AccountBalanceIcon />
             </ListItemIcon>   
