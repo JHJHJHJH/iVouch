@@ -52,7 +52,7 @@ help(ivouch.reset_ledger_headers)
 # In[8]:
 
 
-c = ivouch.get_data_by_key(username = "admin", projectname = 'proj123')
+c = ivouch.get_data_by_key()
 c
 
 
@@ -94,24 +94,33 @@ test
 # In[14]:
 
 
-invoiceeledger = [list(map(lambda ledger: ledger.entry_data,test)),list(map(lambda ledger: ledger.matched_invoice,test))]
-invoiceeledger
+a = list()
+for t in test:
+    a.append([t.entry_data, t.matched_invoice])
+a
 
 
 # In[15]:
 
 
-test1 = list(filter(lambda ledger: ledger.is_statement, dd))
+invoiceeledger = [list(map(lambda ledger: ledger.entry_data,test)),list(map(lambda ledger: ledger.matched_invoice,test))]
+list(zip(*invoiceeledger))
 
 
 # In[16]:
 
 
-statementledger = [list(map(lambda ledger: ledger.entry_data,test1)),list(map(lambda ledger: ledger.matched_statement,test1))]
-statementledger[0]
+test1 = list(filter(lambda ledger: ledger.is_statement, dd))
 
 
 # In[17]:
+
+
+statementledger = [list(map(lambda ledger: ledger.entry_data,test1)),list(map(lambda ledger: ledger.matched_statement,test1))]
+list(zip(*statementledger))
+
+
+# In[18]:
 
 
 statementledger[1]

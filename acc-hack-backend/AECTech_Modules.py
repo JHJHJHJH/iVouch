@@ -1,8 +1,11 @@
 import sys
 import enum
+import json
 import pandas as pd
 import numpy as np
 import boto3
+import decimal
+from decimal import Decimal
 
 class matching_result(enum.Enum):
     NotChecked = 0
@@ -23,6 +26,7 @@ class ivouch():
     ledgers,invoices,bankstatements = list(), list(), list()
     reference = 'Reference'
     debit = 'Debit'
+    debitor = 'Debtor'
     credit = 'Credit'
     creditor = 'Creditor'
     account_description = 'Account description'
@@ -32,10 +36,11 @@ class ivouch():
 
     def set_ledger_headers(
         reference_column:str = None, 
-        debit_column:str = None, 
+        debit_column:str = None,
+        debitor_column:str = None, 
         credit_column:str = None, 
         creditor_column:str = None,
-        account_description_column:str = None):
+        account_description_column:str = None,):
         """
         reference_column -> the column name to be used as a reference
         debit_column -> the column name to be used as debit
@@ -49,8 +54,10 @@ class ivouch():
         else: ivouch.reference = 'Reference'
         if debit_column: ivouch.debit = debit_column
         else: ivouch.debit = 'Debit'
+        if debitor_column: ivouch.debitor = debitor_column
+        else: ivouch.debitor = 'Debit'
         if credit_column: ivouch.credit = credit_column
-        else: ivouch.credit = 'Credit'
+        else: ivouch.credit = 'Debtor'
         if creditor_column: ivouch.creditor = creditor_column
         else: ivouch.creditor = 'Creditor'
         if account_description_column: ivouch.account_description = account_description_column
@@ -101,7 +108,9 @@ class ivouch():
         response = table.get_item(Key=partitionkey)
         if not 'Item' in response: raise TypeError("No items found for user name: " + username +". Please select other user name")
 
-        allitems =  response['Item']['projects']
+        response = json.loads(json.dumps(response["Item"], default= ivouch.decimal_default))
+
+        allitems =  response['projects']
         selectprojitem = next((allitem for allitem in allitems if allitem['name'] == projectnamekey),None)
         if not selectprojitem: raise TypeError("No items found for project name: " + projectnamekey +". Please select other project name")
         
@@ -112,6 +121,10 @@ class ivouch():
 
         return selectprojitem
     
+    def decimal_default(obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+
     def match_ledger_with_statements_and_invoice(
         statement_headers_to_match : dict = None,
         invoice_headers_to_match : dict = None):
