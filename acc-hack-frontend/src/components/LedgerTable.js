@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 // import DataTable from 'react-data-table-component';
 import MUIDataTable from "mui-datatables";
+import ProjectInfo from './ProjectInfo';
+
 class LedgerTable extends Component {
   constructor(props){
     super(props);
@@ -44,14 +46,16 @@ class LedgerTable extends Component {
     
   render( ) {
       return (
-        // <div/>
-          <MUIDataTable
-              title="Ledger"
-              columns={this.state.Header}
-              data={this.state.Ledger}
-              
-              dense={true}
-          />
+          <>
+            <ProjectInfo info={this.props.info} project={this.props.project}/>
+            <MUIDataTable
+                title="Ledger"
+                columns={this.state.Header}
+                data={this.state.Ledger}
+                
+                dense={true}
+            />
+          </>
       )
   }
 }

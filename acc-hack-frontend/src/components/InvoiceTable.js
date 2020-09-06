@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 // import DataTable from 'react-data-table-component';
 import MUIDataTable from "mui-datatables";
+import ProjectInfo from './ProjectInfo';
 // const data = [{ id: 1, title: 'Conan the Barbarian', year: '1982' },
 //               { id: 2, title: 'Some movie2', year: '2002'}];
               
@@ -67,7 +68,7 @@ class InvoiceTable extends Component {
       }
     }
 
-    async componentDidMount(){
+    componentDidMount(){
       try {
         const data = this.props.invoices;
         const longestObj = data.reduce( function (prev, current) {
@@ -94,12 +95,15 @@ class InvoiceTable extends Component {
 
     render( ) {
         return (
+          <>
+            <ProjectInfo info={this.props.info} project={this.props.project}/>
             <MUIDataTable
                 title="Invoices"
                 columns={this.state.Header}
                 data={this.state.Invoice}
                 dense={true}
             />
+          </>
         )
     }
 }

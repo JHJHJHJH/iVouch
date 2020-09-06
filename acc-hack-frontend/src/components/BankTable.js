@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import MUIDataTable from "mui-datatables";
+import ProjectInfo from './ProjectInfo';
 
 class BankTable extends Component {
     constructor(props){
@@ -44,12 +45,15 @@ class BankTable extends Component {
 
     render( ) {
         return (
+          <>
+            <ProjectInfo info={this.props.info} project={this.props.project}/>
             <MUIDataTable
                 title="Bank Statement"
                 columns={this.state.Header}
                 data={this.state.Statement}
                 dense={true}
             />
+          </>
         )
     }
 }

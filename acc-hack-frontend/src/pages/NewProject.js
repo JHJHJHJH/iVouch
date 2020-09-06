@@ -34,6 +34,7 @@ class NewProject extends Component{
             user: "",
             projectName: "",
             company:"",
+            year:"",
             address1:"",
             address2:"",
             projectError: false,
@@ -100,7 +101,7 @@ class NewProject extends Component{
         for (let i = 0; i < ledgerFiles.length; i++) {
             ledgerformData.append(`file`, ledgerFiles[i], ledgerFiles[i].name)
         };
-
+            //statement
         const statementFiles = this.state.Statement;
         const statementformData = new FormData();
         for (let i = 0; i < statementFiles.length; i++) {
@@ -123,6 +124,7 @@ class NewProject extends Component{
                     "name": this.state.projectName,
                     "information" : {
                         "client": this.state.company,
+                        "year": this.state.year,
                         "address1" : this.state.address1,
                         "address2" : this.state.address2
                     },
@@ -182,6 +184,17 @@ class NewProject extends Component{
                     placeholder="Company Name"
                     variant="outlined"
                     name="company"
+                    onChange={this.handleChange}
+                />
+                </div>
+                <div>
+                <TextField
+                    className={classes.root}
+                    id="outlined-required"
+                    helperText="Financial Year"
+                    placeholder="Financial Year"
+                    variant="outlined"
+                    name="year"
                     onChange={this.handleChange}
                 />
                 </div>

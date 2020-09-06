@@ -11,6 +11,8 @@ import tabula
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key
 import time
+import AECTech_Modules
+from AECTech_Modules import *
 
 app = Flask(__name__)
 
@@ -325,5 +327,90 @@ def getprojectinfo():
         print(str(e))
         return json.dumps(err), 400
 
+@app.route("/api/matchstatement", methods= ['GET', 'POST'])
+def getmatchstatements():
+    try:
+        reqJson = request.json
+        user = reqJson['username']
+        project = reqJson['project']
+        databykey = ivouch.get_data_by_key( username=user, projectname= project)
+        match = ivouch.match_ledger_with_statements_and_invoice()
+        invoice_matches = list(filter(lambda ledger: ledger.is_invoice, match))
+        statement_matches = list(filter(lambda ledger: ledger.is_statement, match))
+
+        matchDictLst = []
+        for s in statement_matches:
+            matchDict = {}
+            entryDict = s.entry_data
+            statementDict = s.matched_statement
+            invoiceDict = s.matched_invoice
+            if ( 'Bank Account' in entryDict['Account description']):
+                matchDict['Entry no.'] = entryDict['Entry no.']
+                matchDict['GL account'] = entryDict['GL account']
+                matchDict['Description'] = entryDict['Description']
+                matchDict['Date'] = entryDict['Date']
+                matchDict['Debit'] = entryDict['Debit']
+                matchDict['Credit'] = entryDict['Credit']
+                matchDict['Debtor'] = entryDict['Debtor']
+                matchDict['Creditor'] = entryDict['Creditor']
+
+                if ( statementDict is not None):
+                    matchDict['Account Number'] = statementDict['Account Number']
+                    matchDict['Transaction Date'] = statementDict['Transaction Date']
+                    matchDict['Credits'] = statementDict['Credits']
+                    matchDict['Debits'] = statementDict['Debits']
+
+            matchDictLst.append(matchDict)
+            #Entry no. #GL Account #Description #Date # Debit #Debtor #Credit #Creditor
+            #Account number #Transaction date #Debit #Credit
+        return json.dumps(matchDictLst), 200
+    except Exception as e:
+        err = {"message": str(e)}
+        print(str(e))
+        return json.dumps(err), 400
+
+@app.route("/api/matchinvoice", methods= ['GET', 'POST'])
+def getmatchinvoice():
+    try:
+        reqJson = request.json
+        user = reqJson['username']
+        project = reqJson['project']
+        databykey = ivouch.get_data_by_key( username=user, projectname= project)
+        match = ivouch.match_ledger_with_statements_and_invoice()
+        invoice_matches = list(filter(lambda ledger: ledger.is_invoice, match))
+        # print(len(invoice_matches))
+        matchDictLst = []
+        for i in invoice_matches:
+            matchDict = {}
+            entryDict = i.entry_data
+            invoiceDict = i.matched_invoice
+            
+            matchDict['Entry no.'] = entryDict['Entry no.']
+            matchDict['GL account'] = entryDict['GL account']
+            matchDict['Description'] = entryDict['Description']
+            matchDict['Date'] = entryDict['Date']
+            matchDict['Debit'] = entryDict['Debit']
+            matchDict['Credit'] = entryDict['Credit']
+            matchDict['Debtor'] = entryDict['Debtor']
+            matchDict['Creditor'] = entryDict['Creditor']
+            if ( invoiceDict is not None):
+                matchDict['isMatched'] = True
+                if 'invoice_number' in invoiceDict:
+                    matchDict['invoice_number'] = invoiceDict['invoice_number']
+                if 'invoice_amount' in invoiceDict:
+                    matchDict['invoice_amount'] = invoiceDict['invoice_amount']
+                if 'seller_name' in invoiceDict:
+                    matchDict['seller_name'] = invoiceDict['seller_name']
+                if 'buyer_name' in invoiceDict:
+                    matchDict['buyer_name'] =invoiceDict['buyer_name']
+            else:
+                matchDict['isMatched'] = False
+            matchDictLst.append(matchDict)
+            
+        return json.dumps(matchDictLst), 200
+    except Exception as e:
+        err = {"message": str(e)}
+        print(str(e))
+        return json.dumps(err), 400
 if __name__ == "__main__":
     app.run()
