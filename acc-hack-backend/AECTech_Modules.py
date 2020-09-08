@@ -193,6 +193,9 @@ class ivouch():
             invoice_headers_to_match -> dictionary where ledger headers are matched with invoices header e.g:{ledgerheader1:invoiceheader1,...}
             return -> a dictionary of invoice data if any matching data is found
             """
+
+            key_error_msg = "Error! No {0} found in this invoice"
+
             ref = ivouch.reference
             entry_ref = str(self.entry_data[ref])
             invoice_ref_header = invoice_headers_to_match[ref]
@@ -202,16 +205,17 @@ class ivouch():
             invoice_creditor_header = invoice_headers_to_match[creditor]
 
             debit = ivouch.debit
-            entry_debit = self.entry_data[debit]
-            if not isinstance(entry_debit, float): entry_debit = self.__convert_to_float(entry_debit)
-            invoice_debit = invoice_headers_to_match[debit]
+            entry_debit = self.__convert_to_float(self.entry_data[debit])
+            invoice_debit_header = invoice_headers_to_match[debit]
 
             for invoice in invoices:
+                if not invoice_ref_header in invoice: invoice[invoice_ref_header] = key_error_msg.format(invoice_ref_header)
+                if not invoice_creditor_header in invoice: invoice[invoice_creditor_header] = key_error_msg.format(invoice_creditor_header)
                 invoice_ref = str(invoice[invoice_ref_header])
                 invoice_creditor = str(invoice[invoice_creditor_header])
                 if entry_ref.lower() == invoice_ref.lower() and (invoice_creditor.lower() in entry_creditor.lower() or entry_creditor.lower() in invoice_creditor.lower()): #correct header value found
-                    invoice_amount = invoice[invoice_debit]
-                    if not isinstance(invoice_amount, float): invoice_amount = self.__convert_to_float(invoice_amount)
+                    if not invoice_debit_header in invoice: invoice[invoice_debit_header] = key_error_msg.format(invoice_debit_header)
+                    invoice_amount = self.__convert_to_float(invoice[invoice_debit_header])
                     self.matched_invoice = invoice
                     if entry_debit == invoice_amount: # Correct invoice with correct information obtained
                         self.result_invoice = matching_result.Correct
@@ -304,20 +308,16 @@ class ivouch():
             bankstatement_headers_to_match -> dictionary where ledger headers are matched with bankstatements header e.g:{ledgerheader1:bankstatementheader1,...}
             """
             debit = ivouch.debit
-            entry_debit = self.entry_data[debit]
-            if not isinstance(entry_debit, float): entry_debit = self.__convert_to_float(entry_debit)
+            entry_debit = self.__convert_to_float(self.entry_data[debit])
             bankstatement_credit_header = bankstatement_headers_to_match[debit]
 
             credit = ivouch.credit
-            entry_credit = self.entry_data[credit]
-            if not isinstance(entry_credit, float): entry_credit = self.__convert_to_float(entry_credit)
+            entry_credit = self.__convert_to_float(self.entry_data[credit])
             bankstatement_debit_header = bankstatement_headers_to_match[credit]
 
             for bankstatement in bankstatements:
-                bankstatement_credit = bankstatement[bankstatement_credit_header]
-                bankstatement_debit = bankstatement[bankstatement_debit_header]
-                if not isinstance(bankstatement_credit,float): bankstatement_credit = self.__convert_to_float(bankstatement_credit)
-                if not isinstance(bankstatement_debit,float): bankstatement_debit = self.__convert_to_float(bankstatement_debit)
+                bankstatement_credit = self.__convert_to_float(bankstatement[bankstatement_credit_header])
+                bankstatement_debit = self.__convert_to_float(bankstatement[bankstatement_debit_header])
                 if bankstatement_credit == entry_debit and bankstatement_debit == entry_credit:
                     self.matched_statement = bankstatement
                     self.result_bankstatement = matching_result.Correct
@@ -349,6 +349,8 @@ class ivouch():
             if not isinstance(item, str):
                 i = str(item)
             i = i.replace(',','')
-            if i: return float(i)
+            if i: 
+                try:return float(i)
+                except: return i
             else: return float(0)
             
