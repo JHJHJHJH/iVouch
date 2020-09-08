@@ -342,7 +342,7 @@ class ivouch():
 
         def get_invoiceentries(self):
             if self.matched_invoice_entries: return self.matched_invoice_entries
-            else: return "No matching invoice entries found in the ledger. \nSome tips to ensure smoothing matching: \n1.Ensure proper debitor/creditor are correct. \n2.Ensure credit values arent 0 or empty. \n3.Proper descriptive description keyed in e.g. The invoice number must be inside the description"
+            else: return None
 
         def __convert_to_float(self, item):
             i = item

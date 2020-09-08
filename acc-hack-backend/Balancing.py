@@ -28,68 +28,74 @@ dir(ivouch)
 # In[4]:
 
 
-help(ivouch.get_data_by_key)
+help(ivouch.ledger_entry)
 
 
 # In[5]:
 
 
-help(ivouch.match_ledger_with_statements_and_invoice)
+help(ivouch.get_data_by_key)
 
 
 # In[6]:
 
 
-help(ivouch.set_ledger_headers)
+help(ivouch.match_ledger_with_statements_and_invoice)
 
 
 # In[7]:
 
 
-help(ivouch.reset_ledger_headers)
+help(ivouch.set_ledger_headers)
 
 
 # In[8]:
+
+
+help(ivouch.reset_ledger_headers)
+
+
+# In[9]:
 
 
 c = ivouch.get_data_by_key()
 c
 
 
-# In[9]:
+# In[10]:
 
 
 ledgers = ivouch.ledgers
 ledgers
 
 
-# In[10]:
+# In[11]:
 
 
 bankstatements = ivouch.bankstatements
 bankstatements
 
 
-# In[11]:
+# In[12]:
 
 
 invoices = ivouch.invoices
 invoices
 
 
-# In[12]:
+# In[13]:
 
 
 dd = ivouch.match_ledger_with_statements_and_invoice()
 
 
-# In[13]:
+# In[14]:
 
 
 test = list(filter(lambda ledger: ledger.is_invoice, dd))
 
 
-# In[14]:
+# In[15]:
 
 
 a = list()
@@ -98,51 +104,51 @@ for t in test:
 a
 
 
-# In[15]:
+# In[16]:
 
 
 invoiceeledger = [list(map(lambda ledger: ledger.entry_data,test)),list(map(lambda ledger: ledger.matched_invoice,test))]
 list(zip(*invoiceeledger))
 
 
-# In[16]:
+# In[17]:
 
 
 test1 = list(filter(lambda ledger: ledger.is_statement, dd))
 
 
-# In[17]:
+# In[18]:
 
 
 statementledger = [list(map(lambda ledger: ledger.entry_data,test1)),list(map(lambda ledger: ledger.matched_statement,test1))]
 list(zip(*statementledger))
 
 
-# In[18]:
+# In[19]:
 
 
 statementledger[1]
 
 
-# In[19]:
+# In[20]:
 
 
 test3 = list(map(lambda l: l.get_invoiceentries(),test1))
 
 
-# In[20]:
+# In[21]:
 
 
-list(map(lambda l: l.entry_data,test1))[5]
+list(map(lambda l: l.entry_data,test1))
 
 
 # In[24]:
 
 
-[t.entry_data for t in test3[5]]
+[[tt.entry_data for tt in t] if t else t for t in test3]
 
 
-# In[22]:
+# In[25]:
 
 
 invoiceeledger[0]
