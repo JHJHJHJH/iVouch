@@ -15,7 +15,6 @@ class matching_result(enum.Enum):
     Invalid = 4
 
 class ivouch():
-
     dynamodb_client = boto3.client('dynamodb')  #Instantiate your dynamoDB client object
     dynamodb_resource = boto3.resource('dynamodb') #Instantiate your dynamoDB resource object
     __default_table_name = 'ivouch' #Default table name
@@ -30,6 +29,7 @@ class ivouch():
     credit = 'Credit'
     creditor = 'Creditor'
     account_description = 'Account description'
+    description = 'Description'
 
     __default_ledger_and_statement_headers = { debit:'Credits', credit:'Debits' }
     __default_ledger_and_invoice_headers = { reference:'invoice_number', debit:'invoice_amount', creditor:'seller_name' }
@@ -40,7 +40,8 @@ class ivouch():
         debitor_column:str = None, 
         credit_column:str = None, 
         creditor_column:str = None,
-        account_description_column:str = None,):
+        account_description_column:str = None,
+        description_column:str = None):
         """
         reference_column -> the column name to be used as a reference
         debit_column -> the column name to be used as debit
@@ -62,6 +63,8 @@ class ivouch():
         else: ivouch.creditor = 'Creditor'
         if account_description_column: ivouch.account_description = account_description_column
         else: ivouch.account_description = 'Account description'
+        if description_column: ivouch.description = description_column
+        else: ivouch.description = 'Description'
     
     def reset_ledger_headers():
         """
@@ -108,7 +111,7 @@ class ivouch():
         response = table.get_item(Key=partitionkey)
         if not 'Item' in response: raise TypeError("No items found for user name: " + username +". Please select other user name")
 
-        response = json.loads(json.dumps(response["Item"], default= ivouch.decimal_default))
+        response = json.loads(json.dumps(response["Item"], default= ivouch.decimal_default)) #Converts all decimal to float -> then to json string -> then to dictionary
 
         allitems =  response['projects']
         selectprojitem = next((allitem for allitem in allitems if allitem['name'] == projectnamekey),None)
@@ -157,6 +160,11 @@ class ivouch():
             if l.is_invoice: l.match_with_invoice(ivouch.invoices, invoice_headers)
             if l.is_statement: l.match_with_bankstatement(ivouch.bankstatements, statement_headers)
         
+        invoice_entries1 = list(filter(lambda ledger: ledger.is_invoice, ivouch.__ledgerclasses))
+        bankstatement_entries = list(filter(lambda ledger: ledger.is_statement, ivouch.__ledgerclasses))
+        for l in bankstatement_entries:
+            l.match_bankentry_with_invoiceentry(invoice_entries1)
+
         return ivouch.__ledgerclasses
 
     class ledger_entry():
@@ -164,6 +172,7 @@ class ivouch():
         is_invoice, is_statement = False, False
         matched_invoice, matched_statement = None, None
         wrong_invoice, wrong_statement = None, None
+        matched_invoice_entries = list()
         
         result_invoice = matching_result.NotChecked
         result_bankstatement = matching_result.NotChecked
@@ -214,6 +223,81 @@ class ivouch():
                     if not (self.result_invoice == matching_result.Wrong or self.result_invoice == matching_result.Correct):
                         self.result_invoice = matching_result.Missing
 
+        def match_bankentry_with_invoiceentry(self, this_invoice_entries: list) -> None:
+            """
+            this_invoice_entries -> list of ledger entries 
+            """
+            self.matched_invoice_entries = list()
+
+            def conditional_checker(invvoice_entry) -> bool:
+                condition = list()
+
+                reference_header = ivouch.reference
+                invoice_reference_number = str(invvoice_entry.entry_data[reference_header])
+                
+                description_header = ivouch.description
+                description_string = str(self.entry_data[description_header])
+
+                credit_header = ivouch.credit
+                credit_amount = self.__convert_to_float(self.entry_data[credit_header])
+                invoice_credit_amount = self.__convert_to_float(invvoice_entry.entry_data[credit_header])
+                
+                debit_header = ivouch.debit
+                debit_amount = self.__convert_to_float(self.entry_data[debit_header])
+                invoice_debit_amount = self.__convert_to_float(invvoice_entry.entry_data[debit_header])
+
+                creditor_header = ivouch.creditor
+                creditor_string = str(self.entry_data[creditor_header])
+                invoice_creditor_string = str(invvoice_entry.entry_data[creditor_header])
+
+                debitor_header = ivouch.debitor
+                debitor_string = str(self.entry_data[debitor_header])
+                invoice_debit_string = str(invvoice_entry.entry_data[debitor_header])
+
+                if creditor_string: #Match creditor string
+                    if invoice_creditor_string == creditor_string:
+                        condition.append([invoice_creditor_string,creditor_string]) 
+                        if credit_amount != float(0):
+                            if invoice_credit_amount != float(0):
+                                condition.append([invoice_credit_amount,credit_amount])
+                            else:
+                                return False
+                        elif debit_amount != float(0):
+                            if invoice_debit_amount != float(0):
+                                condition.append([invoice_debit_amount,debit_amount])
+                            else:
+                                return False
+                        else:
+                            return False
+                    else:
+                        return False
+                elif debitor_string: #Match debitor string
+                    if invoice_debit_string == debitor_string: 
+                        condition.append([invoice_debit_string,debitor_string])
+                        if credit_amount != float(0):
+                            if invoice_credit_amount != float(0):
+                                condition.append([invoice_credit_amount,credit_amount])
+                            else:
+                                return False
+                        elif debit_amount != float(0):
+                            if invoice_debit_amount != float(0):
+                                condition.append([invoice_debit_amount,debit_amount])
+                            else:
+                                return False
+                        else:
+                            return False
+                    else:
+                        return False
+                else:
+                    return False
+
+                return condition
+
+            for ii in this_invoice_entries:
+                if conditional_checker(ii): self.matched_invoice_entries.append(ii)
+                    #if (invoice_creditor_string in creditor_string or invoice_creditor_string in debitor_string) and invoice_credit_amount != float(0): #and invoice_reference_number in description_string:
+                     #   self.matched_invoice_entries.append(invoice_entry)
+
         def match_with_bankstatement(self, bankstatements: list, bankstatement_headers_to_match: dict) -> dict:
             """
             bankstatements -> list of bankstatements in dict format e.g: [{bankstatement1}, {bankstatement2}]
@@ -255,6 +339,10 @@ class ivouch():
 
         def get_bankstatement_matching_result(self) -> str:
             return self.result_hashing[self.result_bankstatement]
+
+        def get_invoiceentries(self):
+            if self.matched_invoice_entries: return self.matched_invoice_entries
+            else: return "No matching invoice entries found in the ledger. \nSome tips to ensure smoothing matching: \n1.Ensure proper debitor/creditor are correct. \n2.Ensure credit values arent 0 or empty. \n3.Proper descriptive description keyed in e.g. The invoice number must be inside the description"
 
         def __convert_to_float(self, item):
             i = item

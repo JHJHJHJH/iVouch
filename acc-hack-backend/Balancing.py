@@ -81,14 +81,12 @@ invoices
 
 
 dd = ivouch.match_ledger_with_statements_and_invoice()
-dd
 
 
 # In[13]:
 
 
 test = list(filter(lambda ledger: ledger.is_invoice, dd))
-test
 
 
 # In[14]:
@@ -126,10 +124,28 @@ list(zip(*statementledger))
 statementledger[1]
 
 
-# In[ ]:
+# In[19]:
 
 
+test3 = list(map(lambda l: l.get_invoiceentries(),test1))
 
+
+# In[20]:
+
+
+list(map(lambda l: l.entry_data,test1))[5]
+
+
+# In[24]:
+
+
+[t.entry_data for t in test3[5]]
+
+
+# In[22]:
+
+
+invoiceeledger[0]
 
 
 # In[ ]:
