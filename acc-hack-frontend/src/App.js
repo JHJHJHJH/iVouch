@@ -26,9 +26,6 @@ const useStyles = makeStyles((theme) => ({
   body: {
     paddingLeft: 30,
     paddingRight: 30
-  },
-  pagebody: {
-    marginTop: 50,
   }
 }));
 
@@ -62,7 +59,9 @@ function App() {
   const [invoices, setInvoices] = useState([]);
   const [ledgers, setLedgers] = useState([]);
   const [statements, setStatements] = useState([]);
-  
+  //matched data
+  const [statementMatches, setStatementMatches] = useState([]);
+  const [invoiceMatches, setInvoiceMatches] = useState([]);
 
   useEffect(() => {
     async function fetchData(){
@@ -97,7 +96,37 @@ function App() {
       
     };
 
+    async function fetchMatchStatement(){
+      const result = await fetch('/api/matchinvoice', {
+        headers: {
+          'Accept': 'application/json',
+          "Content-Type" :"application/json"
+        },
+        body: JSON.stringify({ username: username, project: working }),
+        method: 'post'
+      });
+      
+      const matchdata = await result.json();
+      setInvoiceMatches( matchdata );
+    };
+
+    async function fetchMatchInvoice(){
+      const result = await fetch('/api/matchstatement', {
+        headers: {
+          'Accept': 'application/json',
+          "Content-Type" :"application/json"
+        },
+        body: JSON.stringify({ username: username, project: working }),
+        method: 'post'
+      });
+      
+      const matchdata = await result.json();
+      setStatementMatches( matchdata );
+    };
+
     fetchData();
+    fetchMatchStatement();
+    fetchMatchInvoice();
   }, []);
 
   const handleProjectChange= (projectname) => {
@@ -122,15 +151,14 @@ function App() {
             <SideNavbar/>
           </Col>
           <Col md={10}>
-            <ProjectInfo info={projectInfo} project={working}/>
-            <div id="page-body" className={classes.pagebody}>
-              
+            
+            <div id="page-body">  
               <Switch>
-                <Route path="/" component={Dashboard} exact/>
-                <Route path="/compliance" component={Compliance} exact/>
-                <Route path="/invoices" component={()=> (<InvoiceTable invoices={invoices}/>)}  exact/>
-                <Route path="/ledger" component={()=> (<LedgerTable ledgers={ledgers}/>)} exact/>
-                <Route path="/statement" component={()=> (<BankTable statements={statements}/>)} exact/>
+                <Route path="/" component={() => (<Dashboard matchstatements= {statementMatches} matchinvoices={invoiceMatches} />)} exact/>
+                <Route path="/compliance" component={()=> (<Compliance matchstatements={statementMatches} info={projectInfo} project={working}/>)} exact/>
+                <Route path="/invoices" component={()=> (<InvoiceTable invoices={invoices} info={projectInfo} project={working}/>)}  exact/>
+                <Route path="/ledger" component={()=> (<LedgerTable ledgers={ledgers} info={projectInfo} project={working}/>)} exact/>
+                <Route path="/statement" component={()=> (<BankTable statements={statements} info={projectInfo} project={working}/>)} exact/>
                 <Route path="/newproject" component={()=> (<NewProject user={username} projects={projects} />)}  exact/>
                 
                 {/* Must be placed last */}
