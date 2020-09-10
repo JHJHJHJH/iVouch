@@ -50,6 +50,10 @@ function cleanJson( lstObj ) {
   return newLstObj;
 }
 
+
+
+
+
 function App() {
   const classes = useStyles();
   const [userData, setUserData] = useState([]);
@@ -62,6 +66,34 @@ function App() {
   //matched data
   const [statementMatches, setStatementMatches] = useState([]);
   const [invoiceMatches, setInvoiceMatches] = useState([]);
+
+  
+  const fetchMatchStatement= async() => {
+    const result = await fetch('/api/matchstatement', {
+      headers: {
+        'Accept': 'application/json',
+        "Content-Type" :"application/json"
+      },
+      body: JSON.stringify({ username: username, project: working }),
+      method: 'post'
+    });
+    
+    const matchdata = await result.json();
+    setStatementMatches(matchdata) ;
+  };
+  const fetchMatchInvoice = async() => {
+    const result = await fetch('/api/matchinvoice', {
+      headers: {
+        'Accept': 'application/json',
+        "Content-Type" :"application/json"
+      },
+      body: JSON.stringify({ username: username, project: working }),
+      method: 'post'
+    });
+    
+    const matchdata = await result.json();
+    setInvoiceMatches(matchdata) ;
+  };
 
   useEffect(() => {
     async function fetchData(){
@@ -93,35 +125,6 @@ function App() {
       setInvoices( found.invoices);
       setStatements( statements);
       setLedgers( ledgers);
-      
-    };
-
-    async function fetchMatchStatement(){
-      const result = await fetch('/api/matchinvoice', {
-        headers: {
-          'Accept': 'application/json',
-          "Content-Type" :"application/json"
-        },
-        body: JSON.stringify({ username: username, project: working }),
-        method: 'post'
-      });
-      
-      const matchdata = await result.json();
-      setInvoiceMatches( matchdata );
-    };
-
-    async function fetchMatchInvoice(){
-      const result = await fetch('/api/matchstatement', {
-        headers: {
-          'Accept': 'application/json',
-          "Content-Type" :"application/json"
-        },
-        body: JSON.stringify({ username: username, project: working }),
-        method: 'post'
-      });
-      
-      const matchdata = await result.json();
-      setStatementMatches( matchdata );
     };
 
     fetchData();
@@ -131,11 +134,13 @@ function App() {
 
   const handleProjectChange= (projectname) => {
     setWorking(projectname);
-    let found = userData.find( proj=> proj.name === projectname);
+    const found = userData.find( proj=> proj.name === projectname);
     setProjectInfo( found.information );
     setInvoices( found.invoices);
-    setStatements( found.statement);
-    setLedgers( found.ledger);
+    setStatements( cleanJson(found.statement));
+    setLedgers( cleanJson(found.ledger));
+    fetchMatchStatement();
+    fetchMatchInvoice();
   };
 
   return (
@@ -154,7 +159,17 @@ function App() {
             
             <div id="page-body">  
               <Switch>
-                <Route path="/" component={() => (<Dashboard matchstatements= {statementMatches} matchinvoices={invoiceMatches} />)} exact/>
+                <Route path="/" component={() => 
+                  (<Dashboard 
+                    matchstatements={statementMatches} 
+                    matchinvoices={invoiceMatches} 
+                    info={projectInfo} 
+                    project={working}
+                    invoices={invoices}
+                    ledgers={ledgers}
+                    statements={statements}
+                     />)} 
+                exact/>
                 <Route path="/compliance" component={()=> (<Compliance matchstatements={statementMatches} info={projectInfo} project={working}/>)} exact/>
                 <Route path="/invoices" component={()=> (<InvoiceTable invoices={invoices} info={projectInfo} project={working}/>)}  exact/>
                 <Route path="/ledger" component={()=> (<LedgerTable ledgers={ledgers} info={projectInfo} project={working}/>)} exact/>

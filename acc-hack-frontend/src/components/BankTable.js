@@ -2,6 +2,11 @@ import React, {Component} from 'react';
 import MUIDataTable from "mui-datatables";
 import ProjectInfo from './ProjectInfo';
 
+
+function tempHeaders( headers ) {
+  return ["Bank", "Account_Number", "Transaction_Date", "Value_Date", "Debits", "Credits", "Running_Balance"];
+}
+
 class BankTable extends Component {
     constructor(props){
       super(props);
@@ -25,8 +30,10 @@ class BankTable extends Component {
             }
           }
         }
-
-        const columns = allheaders.map( h =>  ({
+        
+        const temp = tempHeaders( allheaders );
+        
+        const columns = temp.map( h => ({
           name: h,
           selector: h,
           sortable: true,
@@ -34,8 +41,8 @@ class BankTable extends Component {
           minWidth:"200px"
         }));
 
-        console.log(columns);
-        console.log(data);
+        // console.log(columns);
+        // console.log(data);
         this.setState({ Header: columns })
         this.setState({ Statement: data})
       } catch (e) {

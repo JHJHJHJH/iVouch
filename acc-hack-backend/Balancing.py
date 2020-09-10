@@ -154,7 +154,7 @@ list(map(lambda l: l.entry_data,test1))
 invoiceeledger[0]
 
 
-# In[ ]:
+s# In[ ]:
 
 
 

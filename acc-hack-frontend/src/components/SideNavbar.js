@@ -29,7 +29,7 @@ const SideNavbar = () => (
           <ListItemIcon>
             <CodeIcon />
           </ListItemIcon>
-          <ListItemText primary="Compliance" />
+          <ListItemText primary="Match Results" />
         </ListItem>
 
         <ListItem button component={Link} to="/invoices">

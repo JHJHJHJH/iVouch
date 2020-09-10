@@ -3,6 +3,10 @@ import React, {Component} from 'react';
 import MUIDataTable from "mui-datatables";
 import ProjectInfo from './ProjectInfo';
 
+function tempHeaders( headers ) {
+  return ["Date","GL_account",  "Account_description", "Description", "Reference", "Entry_no.", "Debit", "Credit", "Debtor", "Creditor"];
+}
+
 class LedgerTable extends Component {
   constructor(props){
     super(props);
@@ -26,8 +30,8 @@ class LedgerTable extends Component {
         }
       }
       console.log(allheaders);
-
-      const columns = allheaders.map( h =>  ({
+      const temp = tempHeaders(allheaders);
+      const columns = temp.map( h =>  ({
         name: h,
         selector: h,
         sortable: true,

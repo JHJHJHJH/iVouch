@@ -335,7 +335,7 @@ def getmatchstatements():
         project = reqJson['project']
         databykey = ivouch.get_data_by_key( username=user, projectname= project)
         match = ivouch.match_ledger_with_statements_and_invoice()
-        invoice_matches = list(filter(lambda ledger: ledger.is_invoice, match))
+        # invoice_matches = list(filter(lambda ledger: ledger.is_invoice, match))
         statement_matches = list(filter(lambda ledger: ledger.is_statement, match))
 
         matchDictLst = []
@@ -343,7 +343,6 @@ def getmatchstatements():
             matchDict = {}
             entryDict = s.entry_data
             statementDict = s.matched_statement
-            invoiceDict = s.matched_invoice
             if ( 'Bank Account' in entryDict['Account description']):
                 matchDict['Entry no.'] = entryDict['Entry no.']
                 matchDict['GL account'] = entryDict['GL account']
@@ -359,7 +358,15 @@ def getmatchstatements():
                     matchDict['Transaction Date'] = statementDict['Transaction Date']
                     matchDict['Credits'] = statementDict['Credits']
                     matchDict['Debits'] = statementDict['Debits']
+               
 
+                if ( len(s.matched_invoice_entries) > 0 and  statementDict is not None):
+                    matchDict['isMatched'] = True
+                else:
+                    matchDict['isMatched'] = False
+                
+                matchDict['MatchedInvoices'] =  [i.entry_data for i in s.matched_invoice_entries]
+            
             matchDictLst.append(matchDict)
             #Entry no. #GL Account #Description #Date # Debit #Debtor #Credit #Creditor
             #Account number #Transaction date #Debit #Credit
@@ -405,7 +412,7 @@ def getmatchinvoice():
                     matchDict['buyer_name'] =invoiceDict['buyer_name']
             else:
                 matchDict['isMatched'] = False
-            matchDictLst.append(matchDict)
+            matchDictLst.append( matchDict)
             
         return json.dumps(matchDictLst), 200
     except Exception as e:
